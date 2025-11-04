@@ -47,6 +47,28 @@ def calculate_match(recipe_ingredients, user_ingredients):
         'missing': missing
     }
 
+def search_recipes(user_ingredients, recipes):
+    # searches through recipes and ranks them by match percentage
+    results = []
+
+    for recipe in recipes:
+        match_data = calculate_match(recipe['ingredients'], user_ingredients)
+        # only shows recipes with at least some match
+        # match_data still has unmatched recipes for further use
+        if match_data['percentage'] > 0:
+            results.append({
+                'id': recipe['id'],
+                'name': recipe['name'],
+                'match_percentage': match_data['percentage'],
+                'matched_ingredients': match_data['matched'],
+                'missing_ingredients': match_data['missing']
+            })
+
+    # sort by match percentage descending
+    results.sort(key=lambda x: x['match_percentage'], reverse=True)
+
+    return results
+
 
 def main():
     # Current testing: Does input and list parsing work?
@@ -63,12 +85,21 @@ def main():
     
     # parse ingredients and print
     user_ing = parse_ingredients(user_input)
-    print(f"\nCollected ingredients: {', '.join(user_ing)}")
+    print(f"\nSearching with: {', '.join(user_ing)}")
 
     recipes = load_recipes()
-    
-    match_data = calculate_match(['eggs', 'milk', 'flour'], user_ing)
-    print(match_data)
+
+    results = search_recipes(user_ing, recipes)
+    for i, recipe in enumerate(results, 1):
+        #visual indicator
+        bars = "[]" * int(recipe['match_percentage'] / 10)
+
+        print(f"\n{i}. {recipe['name']}")
+        print(f"   Match: {recipe['match_percentage']}% {bars}")
+        print(f"   You have: {', '.join(recipe['matched_ingredients'])}")
+        
+        if recipe['missing_ingredients']:
+            print(f"   Missing: {', '.join(recipe['missing_ingredients'])}")
 
 if __name__ == "__main__":
     main()
