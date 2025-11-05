@@ -1,0 +1,44 @@
+{
+  "recipes": [
+    {
+      "id": 1,
+      "name": "Grilled Cheese Sandwich",
+      "ingredients": ["bread", "cheese", "butter"]
+    },
+    {
+      "id": 2,
+      "name": "Scrambled Eggs",
+      "ingredients": ["eggs", "butter", "milk", "salt", "pepper"]
+    },
+    {
+      "id": 3,
+      "name": "Spaghetti Carbonara",
+      "ingredients": ["spaghetti", "eggs", "parmesan cheese", "bacon", "black pepper"]
+    },
+    {
+      "id": 4,
+      "name": "Simple Salad",
+      "ingredients": ["lettuce", "tomatoes", "cucumber", "olive oil", "salt"]
+    },
+    {
+      "id": 5,
+      "name": "Chicken Tacos",
+      "ingredients": ["chicken", "tortillas", "lettuce", "cheese", "sour cream"]
+    },
+    {
+      "id": 6,
+      "name": "Tomato Soup",
+      "ingredients": ["tomatoes", "onion", "garlic", "broth", "cream"]
+    },
+    {
+      "id": 7,
+      "name": "Fried Rice",
+      "ingredients": ["rice", "eggs", "soy sauce", "vegetables", "oil"]
+    },
+    {
+      "id": 8,
+      "name": "Pasta with Butter",
+      "ingredients": ["pasta", "butter", "parmesan cheese", "salt"]
+    }
+  ]
+}
