@@ -8,3 +8,6 @@ SmartFridge:
 - Takes your available ingredients
 - Finds recipes you can make (or almost make)
 - Shows you exactly what you're missing
+## Dependencies Needed
+- Fuzzywuzzy: for enhancing ingredient parsing (mitigates aginst typos and such)
+    - command: pip install fuzzywuzzy python-Levenshtein
