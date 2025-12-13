@@ -51,9 +51,9 @@ fi
 
 echo ""
 echo "=========================================="
-echo "✅ Authentication Fixed!"
+echo "Authentication Fixed!"
 echo "=========================================="
 echo ""
 echo "You can now run:"
-echo "  ./setup_postgres_codespaces.sh"
+echo "  ./setup_postgre.sh"
 echo ""

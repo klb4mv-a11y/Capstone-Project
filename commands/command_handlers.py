@@ -19,7 +19,7 @@ from database.db_connection import execute_update, execute_query
 # USER COMMANDS
 
 def handle_create_user(username: str, password: str, dietary_restrictions: List[str] = None) -> Dict[str, Any]:
-    """Creates a new user in PostgreSQL"""
+    # creates a new user in PostgreSQL
     event_bus = get_event_bus()
     
     # validation
@@ -53,7 +53,7 @@ def handle_create_user(username: str, password: str, dietary_restrictions: List[
     }
 
 def handle_update_user_profile(user_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
-    """Updates user profile in PostgreSQL"""
+    # updates user profile in PostgreSQL
     event_bus = get_event_bus()
     
     # validation
@@ -69,7 +69,7 @@ def handle_update_user_profile(user_id: str, updates: Dict[str, Any]) -> Dict[st
         if field in allowed_fields:
             db_field = allowed_fields[field]
             
-            # Handle dietary_restrictions specially (convert list to comma-separated)
+            # handle dietary_restrictions specially (convert list to comma-separated)
             if field == 'dietary_restrictions':
                 value = ','.join(value) if isinstance(value, list) else value
             
@@ -89,7 +89,7 @@ def handle_update_user_profile(user_id: str, updates: Dict[str, Any]) -> Dict[st
 # INGREDIENT COMMANDS
 
 def handle_add_ingredient(user_id: str, ingredient_name: str, amount: float = 1.0, exp_date: str = None) -> Dict[str, Any]:
-    """Adds ingredient to user's pantry in PostgreSQL"""
+    # adds ingredient to user's pantry in PostgreSQL
     event_bus = get_event_bus()
     
     # validation
@@ -100,20 +100,20 @@ def handle_add_ingredient(user_id: str, ingredient_name: str, amount: float = 1.
     if not ingredient_name:
         return {'success': False, 'message': 'Ingredient name required'}
     
-    # Get or create ingredient
+    # get or create ingredient
     ing_name = ingredient_name.lower()
     check_ing = "SELECT i_id FROM ingredients WHERE name = %s;"
     ingredient = execute_query(check_ing, (ing_name,), fetch_one=True)
     
     if not ingredient:
-        # Create ingredient if doesn't exist
+        # create ingredient if doesn't exist
         insert_ing = "INSERT INTO ingredients (name, cpu, unit) VALUES (%s, 0.00, 'each') RETURNING i_id;"
         ingredient = execute_query(insert_ing, (ing_name,), fetch_one=True)
         execute_update("COMMIT;")
     
     i_id = ingredient['i_id']
     
-    # Add to user's pantry (or update if exists)
+    # add to user's pantry (or update if exists)
     insert_pantry = """
         INSERT INTO has_ingredient (u_id, i_id, amt, exp_date)
         VALUES (%s, %s, %s, %s)
@@ -121,7 +121,7 @@ def handle_add_ingredient(user_id: str, ingredient_name: str, amount: float = 1.
     """
     execute_update(insert_pantry, (user_id, i_id, amount, exp_date))
     
-    ingredient_id = str(i_id)  # Convert to string for consistency with events
+    ingredient_id = str(i_id)  # convert to string for consistency with events
     
     # publish event
     event = IngredientAddedEvent(user_id, ingredient_id, ing_name, amount, exp_date)
@@ -134,10 +134,10 @@ def handle_add_ingredient(user_id: str, ingredient_name: str, amount: float = 1.
     }
 
 def handle_remove_ingredient(user_id: str, ingredient_id: str) -> Dict[str, Any]:
-    """Remove ingredient from user's pantry in PostgreSQL"""
+    # remove ingredient from user's pantry in PostgreSQL
     event_bus = get_event_bus()
     
-    # Try to delete
+    # try to delete
     delete_query = "DELETE FROM has_ingredient WHERE u_id = %s AND i_id = %s;"
     rows = execute_update(delete_query, (user_id, int(ingredient_id)))
     
@@ -156,7 +156,7 @@ def handle_favorite_recipe(user_id: str, recipe_id: str, recipe_name: str) -> Di
     """Marks recipe as favorite in PostgreSQL"""
     event_bus = get_event_bus()
     
-    # Insert favorite (ignore if already exists)
+    # insert favorite (ignore if already exists)
     insert_fav = """
         INSERT INTO favorite (u_id, r_id)
         VALUES (%s, %s)
@@ -174,7 +174,7 @@ def handle_favorite_recipe(user_id: str, recipe_id: str, recipe_name: str) -> Di
     return {'success': True, 'message': f'Added {recipe_name} to favorites'}
 
 def handle_unfavorite_recipe(user_id: str, recipe_id: str) -> Dict[str, Any]:
-    """Removes recipe from favorites in PostgreSQL"""
+    # removes recipe from favorites in PostgreSQL
     event_bus = get_event_bus()
     
     delete_fav = "DELETE FROM favorite WHERE u_id = %s AND r_id = %s;"
@@ -192,16 +192,16 @@ def handle_unfavorite_recipe(user_id: str, recipe_id: str) -> Dict[str, Any]:
 # APPLIANCE COMMANDS
 
 def handle_update_appliances(user_id: str, appliances: List[str]) -> Dict[str, Any]:
-    """Updates user's available appliances in PostgreSQL"""
+    # updates user's available appliances in PostgreSQL
     event_bus = get_event_bus()
     
-    # Clear existing appliances
+    # clear existing appliances
     delete_query = "DELETE FROM has_app WHERE u_id = %s;"
     execute_update(delete_query, (user_id,))
     
-    # Insert new appliances
+    # insert new appliances
     if appliances:
-        # Ensure appliances exist in appliance table
+        # ensure appliances exist in appliance table
         for app_name in appliances:
             app_lower = app_name.lower()
             ensure_app = """
@@ -211,7 +211,7 @@ def handle_update_appliances(user_id: str, appliances: List[str]) -> Dict[str, A
             """
             execute_update(ensure_app, (app_lower,))
             
-            # Add to user's appliances
+            # add to user's appliances
             insert_has = """
                 INSERT INTO has_app (name, u_id)
                 VALUES (%s, %s)
@@ -228,7 +228,7 @@ def handle_update_appliances(user_id: str, appliances: List[str]) -> Dict[str, A
 # TRACKING COMMAND
 
 def handle_log_recipe_search(user_id: str, ingredients: List[str], filters: Dict[str, Any], result_count: int) -> Dict[str, Any]:
-    """Logs that a recipe search was performed"""
+    # logs that a recipe search was performed
     event_bus = get_event_bus()
     
     # publish event (analytics tracking)
