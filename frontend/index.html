@@ -421,7 +421,7 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        const API_URL = 'https://automatic-winner-5gp6gg77j9gwc47qx-5000.app.github.dev/api'; //NEEDS TO BE CHANGED TO LOCALHOST AFTER DEVELOPMENT
+        const API_URL = 'https://automatic-winner-5gp6gg77j9gwc47qx-5000.app.github.dev/api'; //NEEDS TO BE CHANGED TO LOCALHOST AFTER DEVELOPMENT 
 
         function App() {
             const [userId, setUserId] = useState(null);
@@ -431,6 +431,7 @@
             const [suggestions, setSuggestions] = useState([]);
             const [loading, setLoading] = useState(false);
             const [error, setError] = useState(null);
+            const [cookingMode, setCookingMode] = useState(null); // {recipe, currentStep: 0}
             const [filters, setFilters] = useState({
                 max_time: '',
                 skill_level: '',
@@ -543,11 +544,260 @@
                 });
             };
 
+            const startCooking = (recipeId) => {
+                console.log('Starting cooking mode for recipe:', recipeId);
+                fetch(`${API_URL}/recipes/${recipeId}`)
+                    .then(res => res.json())
+                    .then(recipe => {
+                        console.log('Recipe loaded:', recipe);
+                        if (recipe.instructions) {
+                            setCookingMode({ recipe, currentStep: 0 });
+                        } else {
+                            setError('This recipe does not have cooking instructions yet.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error loading recipe:', err);
+                        setError('Could not load recipe instructions.');
+                    });
+            };
+
+            const nextStep = () => {
+                if (cookingMode && cookingMode.currentStep < cookingMode.recipe.instructions.length - 1) {
+                    setCookingMode({
+                        ...cookingMode,
+                        currentStep: cookingMode.currentStep + 1
+                    });
+                }
+            };
+
+            const prevStep = () => {
+                if (cookingMode && cookingMode.currentStep > 0) {
+                    setCookingMode({
+                        ...cookingMode,
+                        currentStep: cookingMode.currentStep - 1
+                    });
+                }
+            };
+
+            const exitCookingMode = () => {
+                setCookingMode(null);
+            };
+
             const handleKeyPress = (e) => {
                 if (e.key === 'Enter') {
                     addIngredient();
                 }
             };
+
+            // Cooking Mode Component
+            if (cookingMode) {
+                const { recipe, currentStep } = cookingMode;
+                const instruction = recipe.instructions[currentStep];
+                const progress = ((currentStep + 1) / recipe.instructions.length) * 100;
+
+                return (
+                    <div style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'var(--warm-white)',
+                        zIndex: 1000,
+                        overflow: 'auto',
+                        padding: '20px'
+                    }}>
+                        <div style={{maxWidth: '800px', margin: '0 auto'}}>
+                            {/* Header */}
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: '30px'
+                            }}>
+                                <div>
+                                    <h1 style={{
+                                        fontFamily: 'Playfair Display, serif',
+                                        fontSize: '2.5rem',
+                                        color: 'var(--terracotta)',
+                                        marginBottom: '5px'
+                                    }}>{recipe.name}</h1>
+                                    <div style={{color: '#666'}}>
+                                        Step {currentStep + 1} of {recipe.instructions.length}
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={exitCookingMode}
+                                    style={{
+                                        background: '#ddd',
+                                        color: '#333',
+                                        padding: '12px 24px',
+                                        borderRadius: '12px',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        fontWeight: '600'
+                                    }}
+                                >
+                                    ✕ Exit
+                                </button>
+                            </div>
+
+                            {/* Progress Bar */}
+                            <div style={{
+                                height: '12px',
+                                background: 'var(--cream)',
+                                borderRadius: '10px',
+                                overflow: 'hidden',
+                                marginBottom: '40px'
+                            }}>
+                                <div style={{
+                                    height: '100%',
+                                    background: 'linear-gradient(90deg, var(--sage), var(--terracotta))',
+                                    width: `${progress}%`,
+                                    transition: 'width 0.3s ease'
+                                }}></div>
+                            </div>
+
+                            {/* Instruction Card */}
+                            <div style={{
+                                background: 'white',
+                                borderRadius: '20px',
+                                padding: '50px',
+                                boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                                border: '3px solid var(--cream)',
+                                marginBottom: '30px',
+                                minHeight: '300px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center'
+                            }}>
+                                <div style={{
+                                    fontSize: '1.2rem',
+                                    color: 'var(--sage)',
+                                    marginBottom: '20px',
+                                    fontWeight: '600',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '2px'
+                                }}>
+                                    Step {instruction.step}
+                                </div>
+                                <div style={{
+                                    fontSize: '2rem',
+                                    lineHeight: '1.6',
+                                    color: 'var(--charcoal)',
+                                    marginBottom: '30px'
+                                }}>
+                                    {instruction.instruction}
+                                </div>
+                                
+                                {instruction.time > 0 && (
+                                    <div style={{
+                                        display: 'inline-block',
+                                        background: 'var(--cream)',
+                                        padding: '10px 20px',
+                                        borderRadius: '20px',
+                                        color: 'var(--terracotta)',
+                                        fontWeight: '600',
+                                        alignSelf: 'flex-start'
+                                    }}>
+                                        ⏱️ {Math.floor(instruction.time / 60)}:{(instruction.time % 60).toString().padStart(2, '0')}
+                                    </div>
+                                )}
+
+                                {instruction.ingredients_needed.length > 0 && (
+                                    <div style={{
+                                        marginTop: '20px',
+                                        padding: '20px',
+                                        background: 'var(--cream)',
+                                        borderRadius: '12px'
+                                    }}>
+                                        <div style={{
+                                            fontWeight: '600',
+                                            marginBottom: '10px',
+                                            color: 'var(--sage)'
+                                        }}>
+                                            Ingredients for this step:
+                                        </div>
+                                        <div style={{display: 'flex', flexWrap: 'wrap', gap: '8px'}}>
+                                            {instruction.ingredients_needed.map((ing, idx) => (
+                                                <span key={idx} style={{
+                                                    background: 'white',
+                                                    padding: '6px 12px',
+                                                    borderRadius: '8px',
+                                                    fontSize: '0.9rem'
+                                                }}>
+                                                    {ing}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Navigation Buttons */}
+                            <div style={{
+                                display: 'flex',
+                                gap: '20px',
+                                justifyContent: 'space-between'
+                            }}>
+                                <button
+                                    onClick={prevStep}
+                                    disabled={currentStep === 0}
+                                    style={{
+                                        flex: 1,
+                                        padding: '20px',
+                                        fontSize: '1.2rem',
+                                        background: currentStep === 0 ? '#ddd' : 'var(--sage)',
+                                        color: currentStep === 0 ? '#999' : 'white',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        cursor: currentStep === 0 ? 'not-allowed' : 'pointer',
+                                        fontWeight: '600',
+                                        transition: 'all 0.3s'
+                                    }}
+                                >
+                                    ← Previous
+                                </button>
+                                <button
+                                    onClick={nextStep}
+                                    disabled={currentStep === recipe.instructions.length - 1}
+                                    style={{
+                                        flex: 1,
+                                        padding: '20px',
+                                        fontSize: '1.2rem',
+                                        background: currentStep === recipe.instructions.length - 1 ? '#ddd' : 'var(--terracotta)',
+                                        color: currentStep === recipe.instructions.length - 1 ? '#999' : 'white',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        cursor: currentStep === recipe.instructions.length - 1 ? 'not-allowed' : 'pointer',
+                                        fontWeight: '600',
+                                        transition: 'all 0.3s'
+                                    }}
+                                >
+                                    {currentStep === recipe.instructions.length - 1 ? '🎉 Complete!' : 'Next →'}
+                                </button>
+                            </div>
+
+                            {currentStep === recipe.instructions.length - 1 && (
+                                <div style={{
+                                    marginTop: '30px',
+                                    padding: '30px',
+                                    background: 'linear-gradient(135deg, var(--sage), #7a9176)',
+                                    borderRadius: '20px',
+                                    color: 'white',
+                                    textAlign: 'center'
+                                }}>
+                                    <div style={{fontSize: '3rem', marginBottom: '10px'}}>🎉</div>
+                                    <div style={{fontSize: '1.5rem', fontWeight: '600'}}>
+                                        You did it! Enjoy your {recipe.name}!
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
 
             return (
                 <div className="app-container">
@@ -750,6 +1000,33 @@
                                                 ))}
                                             </div>
                                         )}
+
+                                        <button
+                                            onClick={() => startCooking(recipe.id)}
+                                            style={{
+                                                width: '100%',
+                                                marginTop: '15px',
+                                                padding: '14px',
+                                                background: 'var(--terracotta)',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '12px',
+                                                fontSize: '1rem',
+                                                fontWeight: '600',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.3s'
+                                            }}
+                                            onMouseOver={(e) => {
+                                                e.target.style.background = '#c65a2a';
+                                                e.target.style.transform = 'translateY(-2px)';
+                                            }}
+                                            onMouseOut={(e) => {
+                                                e.target.style.background = 'var(--terracotta)';
+                                                e.target.style.transform = 'translateY(0)';
+                                            }}
+                                        >
+                                            👨‍🍳 Cook This Recipe
+                                        </button>
                                     </div>
                                 ))}
                             </div>

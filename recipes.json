@@ -3,33 +3,155 @@
     {
       "id": 1,
       "name": "Grilled Cheese Sandwich",
-      "ingredients": ["bread", "cheese", "butter"],
+      "ingredients": [
+        "bread",
+        "cheese",
+        "butter"
+      ],
       "prep_time": 2,
       "cook_time": 5,
       "total_time": 7,
       "servings": 1,
       "skill_level": "beginner",
       "cuisine": "American",
-      "dietary_tags": ["vegetarian"],
-      "equipment": ["pan", "spatula"]
+      "dietary_tags": [
+        "vegetarian"
+      ],
+      "equipment": [
+        "pan",
+        "spatula"
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Heat a pan over medium heat.",
+          "time": 30,
+          "ingredients_needed": []
+        },
+        {
+          "step": 2,
+          "instruction": "Butter one side of each bread slice generously.",
+          "time": 30,
+          "ingredients_needed": [
+            "bread",
+            "butter"
+          ]
+        },
+        {
+          "step": 3,
+          "instruction": "Place one slice butter-side down in the pan. Add cheese on top.",
+          "time": 60,
+          "ingredients_needed": [
+            "cheese"
+          ]
+        },
+        {
+          "step": 4,
+          "instruction": "Top with the second slice, butter-side up.",
+          "time": 15,
+          "ingredients_needed": []
+        },
+        {
+          "step": 5,
+          "instruction": "Cook until golden brown, about 2-3 minutes.",
+          "time": 150,
+          "ingredients_needed": []
+        },
+        {
+          "step": 6,
+          "instruction": "Flip carefully with spatula and cook the other side until golden and cheese is melted.",
+          "time": 150,
+          "ingredients_needed": []
+        },
+        {
+          "step": 7,
+          "instruction": "Remove from heat, let cool for 30 seconds, then slice and serve!",
+          "time": 30,
+          "ingredients_needed": []
+        }
+      ]
     },
     {
       "id": 2,
       "name": "Scrambled Eggs",
-      "ingredients": ["eggs", "butter", "milk", "salt", "pepper"],
+      "ingredients": [
+        "eggs",
+        "butter",
+        "milk",
+        "salt",
+        "pepper"
+      ],
       "prep_time": 2,
       "cook_time": 5,
       "total_time": 7,
       "servings": 2,
       "skill_level": "beginner",
       "cuisine": "American",
-      "dietary_tags": ["vegetarian"],
-      "equipment": ["pan", "whisk", "bowl"]
+      "dietary_tags": [
+        "vegetarian"
+      ],
+      "equipment": [
+        "pan",
+        "whisk",
+        "bowl"
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Crack eggs into a bowl.",
+          "time": 30,
+          "ingredients_needed": [
+            "eggs"
+          ]
+        },
+        {
+          "step": 2,
+          "instruction": "Add milk, salt, and pepper. Whisk until well combined and slightly frothy.",
+          "time": 45,
+          "ingredients_needed": [
+            "milk",
+            "salt",
+            "pepper"
+          ]
+        },
+        {
+          "step": 3,
+          "instruction": "Heat butter in a pan over medium-low heat until melted and foamy.",
+          "time": 60,
+          "ingredients_needed": [
+            "butter"
+          ]
+        },
+        {
+          "step": 4,
+          "instruction": "Pour in egg mixture. Let sit for 20 seconds without stirring.",
+          "time": 20,
+          "ingredients_needed": []
+        },
+        {
+          "step": 5,
+          "instruction": "Gently stir and fold eggs with a spatula, creating soft curds. Cook until just set but still creamy.",
+          "time": 120,
+          "ingredients_needed": []
+        },
+        {
+          "step": 6,
+          "instruction": "Remove from heat immediately (eggs will continue cooking). Serve warm!",
+          "time": 15,
+          "ingredients_needed": []
+        }
+      ]
     },
     {
       "id": 3,
       "name": "Spaghetti Carbonara",
-      "ingredients": ["spaghetti", "eggs", "parmesan cheese", "bacon", "black pepper"],
+      "ingredients": [
+        "spaghetti",
+        "eggs",
+        "parmesan cheese",
+        "bacon",
+        "black pepper"
+      ],
       "prep_time": 10,
       "cook_time": 20,
       "total_time": 30,
@@ -37,25 +159,150 @@
       "skill_level": "intermediate",
       "cuisine": "Italian",
       "dietary_tags": [],
-      "equipment": ["pot", "pan", "colander"]
+      "equipment": [
+        "pot",
+        "pan",
+        "colander"
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Bring a large pot of salted water to boil. Add spaghetti and cook according to package directions.",
+          "time": 600,
+          "ingredients_needed": [
+            "spaghetti"
+          ]
+        },
+        {
+          "step": 2,
+          "instruction": "While pasta cooks, cut bacon into small pieces and fry in a large pan until crispy. Remove from heat.",
+          "time": 300,
+          "ingredients_needed": [
+            "bacon"
+          ]
+        },
+        {
+          "step": 3,
+          "instruction": "In a bowl, whisk together eggs, grated parmesan, and lots of black pepper.",
+          "time": 90,
+          "ingredients_needed": [
+            "eggs",
+            "parmesan cheese",
+            "black pepper"
+          ]
+        },
+        {
+          "step": 4,
+          "instruction": "Reserve 1 cup of pasta water, then drain spaghetti.",
+          "time": 30,
+          "ingredients_needed": []
+        },
+        {
+          "step": 5,
+          "instruction": "Add hot pasta to the pan with bacon (off heat). Quickly stir in egg mixture, tossing constantly.",
+          "time": 45,
+          "ingredients_needed": []
+        },
+        {
+          "step": 6,
+          "instruction": "Add pasta water a little at a time to create a creamy sauce. The residual heat will cook the eggs without scrambling.",
+          "time": 60,
+          "ingredients_needed": []
+        },
+        {
+          "step": 7,
+          "instruction": "Serve immediately with extra parmesan and black pepper!",
+          "time": 30,
+          "ingredients_needed": []
+        }
+      ]
     },
     {
       "id": 4,
       "name": "Simple Salad",
-      "ingredients": ["lettuce", "tomatoes", "cucumber", "olive oil", "salt"],
+      "ingredients": [
+        "lettuce",
+        "tomatoes",
+        "cucumber",
+        "olive oil",
+        "salt"
+      ],
       "prep_time": 10,
       "cook_time": 0,
       "total_time": 10,
       "servings": 2,
       "skill_level": "beginner",
       "cuisine": "Mediterranean",
-      "dietary_tags": ["vegetarian", "vegan", "gluten-free"],
-      "equipment": ["bowl", "knife"]
+      "dietary_tags": [
+        "vegetarian",
+        "vegan",
+        "gluten-free"
+      ],
+      "equipment": [
+        "bowl",
+        "knife"
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Wash all vegetables thoroughly under cold water.",
+          "time": 60,
+          "ingredients_needed": [
+            "lettuce",
+            "tomatoes",
+            "cucumber"
+          ]
+        },
+        {
+          "step": 2,
+          "instruction": "Tear lettuce into bite-sized pieces and place in a large bowl.",
+          "time": 60,
+          "ingredients_needed": [
+            "lettuce"
+          ]
+        },
+        {
+          "step": 3,
+          "instruction": "Dice tomatoes and cucumber into small chunks.",
+          "time": 120,
+          "ingredients_needed": [
+            "tomatoes",
+            "cucumber"
+          ]
+        },
+        {
+          "step": 4,
+          "instruction": "Add tomatoes and cucumber to the bowl with lettuce.",
+          "time": 15,
+          "ingredients_needed": []
+        },
+        {
+          "step": 5,
+          "instruction": "Drizzle with olive oil and sprinkle with salt to taste.",
+          "time": 30,
+          "ingredients_needed": [
+            "olive oil",
+            "salt"
+          ]
+        },
+        {
+          "step": 6,
+          "instruction": "Toss everything together gently and serve fresh!",
+          "time": 30,
+          "ingredients_needed": []
+        }
+      ]
     },
     {
       "id": 5,
       "name": "Chicken Tacos",
-      "ingredients": ["chicken", "tortillas", "lettuce", "cheese", "sour cream"],
+      "ingredients": [
+        "chicken",
+        "tortillas",
+        "lettuce",
+        "cheese",
+        "sour cream"
+      ],
       "prep_time": 10,
       "cook_time": 15,
       "total_time": 25,
@@ -63,72 +310,471 @@
       "skill_level": "beginner",
       "cuisine": "Mexican",
       "dietary_tags": [],
-      "equipment": ["pan", "knife"]
+      "equipment": [
+        "pan",
+        "knife"
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Cut chicken into bite-sized pieces or thin strips.",
+          "time": 180,
+          "ingredients_needed": [
+            "chicken"
+          ]
+        },
+        {
+          "step": 2,
+          "instruction": "Heat a pan over medium-high heat. Cook chicken until golden and cooked through, about 6-8 minutes.",
+          "time": 480,
+          "ingredients_needed": []
+        },
+        {
+          "step": 3,
+          "instruction": "Warm tortillas in a dry pan or microwave for 15 seconds each.",
+          "time": 90,
+          "ingredients_needed": [
+            "tortillas"
+          ]
+        },
+        {
+          "step": 4,
+          "instruction": "Shred lettuce into thin strips.",
+          "time": 60,
+          "ingredients_needed": [
+            "lettuce"
+          ]
+        },
+        {
+          "step": 5,
+          "instruction": "Assemble tacos: place chicken on tortillas, top with lettuce, cheese, and a dollop of sour cream.",
+          "time": 120,
+          "ingredients_needed": [
+            "cheese",
+            "sour cream"
+          ]
+        },
+        {
+          "step": 6,
+          "instruction": "Fold and enjoy your delicious tacos!",
+          "time": 15,
+          "ingredients_needed": []
+        }
+      ]
     },
     {
       "id": 6,
       "name": "Tomato Soup",
-      "ingredients": ["tomatoes", "onion", "garlic", "broth", "cream"],
+      "ingredients": [
+        "tomatoes",
+        "onion",
+        "garlic",
+        "broth",
+        "cream"
+      ],
       "prep_time": 10,
       "cook_time": 30,
       "total_time": 40,
       "servings": 4,
       "skill_level": "beginner",
       "cuisine": "American",
-      "dietary_tags": ["vegetarian"],
-      "equipment": ["pot", "blender"]
+      "dietary_tags": [
+        "vegetarian"
+      ],
+      "equipment": [
+        "pot",
+        "blender"
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Dice onion and mince garlic cloves.",
+          "time": 120,
+          "ingredients_needed": [
+            "onion",
+            "garlic"
+          ]
+        },
+        {
+          "step": 2,
+          "instruction": "Roughly chop tomatoes (if using fresh).",
+          "time": 90,
+          "ingredients_needed": [
+            "tomatoes"
+          ]
+        },
+        {
+          "step": 3,
+          "instruction": "In a large pot, saut\u00e9 onion and garlic in a little oil until soft and fragrant, about 3 minutes.",
+          "time": 180,
+          "ingredients_needed": []
+        },
+        {
+          "step": 4,
+          "instruction": "Add tomatoes and broth. Bring to a boil, then reduce heat and simmer for 20 minutes.",
+          "time": 1200,
+          "ingredients_needed": [
+            "broth"
+          ]
+        },
+        {
+          "step": 5,
+          "instruction": "Use an immersion blender (or regular blender in batches) to puree until smooth.",
+          "time": 120,
+          "ingredients_needed": []
+        },
+        {
+          "step": 6,
+          "instruction": "Stir in cream and heat through. Season with salt and pepper to taste.",
+          "time": 120,
+          "ingredients_needed": [
+            "cream"
+          ]
+        },
+        {
+          "step": 7,
+          "instruction": "Serve hot with crusty bread for dipping!",
+          "time": 30,
+          "ingredients_needed": []
+        }
+      ]
     },
     {
       "id": 7,
       "name": "Fried Rice",
-      "ingredients": ["rice", "eggs", "soy sauce", "vegetables", "oil"],
+      "ingredients": [
+        "rice",
+        "eggs",
+        "soy sauce",
+        "vegetables",
+        "oil"
+      ],
       "prep_time": 10,
       "cook_time": 15,
       "total_time": 25,
       "servings": 3,
       "skill_level": "intermediate",
       "cuisine": "Asian",
-      "dietary_tags": ["vegetarian"],
-      "equipment": ["wok", "spatula"]
+      "dietary_tags": [
+        "vegetarian"
+      ],
+      "equipment": [
+        "wok",
+        "spatula"
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "If using day-old rice, break up any clumps. Fresh rice should be cooled first.",
+          "time": 60,
+          "ingredients_needed": [
+            "rice"
+          ]
+        },
+        {
+          "step": 2,
+          "instruction": "Chop vegetables into small, uniform pieces.",
+          "time": 180,
+          "ingredients_needed": [
+            "vegetables"
+          ]
+        },
+        {
+          "step": 3,
+          "instruction": "Beat eggs in a bowl.",
+          "time": 30,
+          "ingredients_needed": [
+            "eggs"
+          ]
+        },
+        {
+          "step": 4,
+          "instruction": "Heat oil in a wok or large pan over high heat until shimmering.",
+          "time": 60,
+          "ingredients_needed": [
+            "oil"
+          ]
+        },
+        {
+          "step": 5,
+          "instruction": "Scramble eggs quickly, breaking into small pieces. Remove and set aside.",
+          "time": 60,
+          "ingredients_needed": []
+        },
+        {
+          "step": 6,
+          "instruction": "Add vegetables to the wok, stir-fry for 2-3 minutes until tender-crisp.",
+          "time": 180,
+          "ingredients_needed": []
+        },
+        {
+          "step": 7,
+          "instruction": "Add rice, breaking up clumps. Stir-fry for 3-4 minutes until heated through.",
+          "time": 210,
+          "ingredients_needed": []
+        },
+        {
+          "step": 8,
+          "instruction": "Add soy sauce and scrambled eggs back in. Toss everything together for 1 minute.",
+          "time": 60,
+          "ingredients_needed": [
+            "soy sauce"
+          ]
+        },
+        {
+          "step": 9,
+          "instruction": "Taste and adjust seasoning. Serve hot!",
+          "time": 30,
+          "ingredients_needed": []
+        }
+      ]
     },
     {
       "id": 8,
       "name": "Pasta with Butter",
-      "ingredients": ["pasta", "butter", "parmesan cheese", "salt"],
+      "ingredients": [
+        "pasta",
+        "butter",
+        "parmesan cheese",
+        "salt"
+      ],
       "prep_time": 5,
       "cook_time": 12,
       "total_time": 17,
       "servings": 2,
       "skill_level": "beginner",
       "cuisine": "Italian",
-      "dietary_tags": ["vegetarian"],
-      "equipment": ["pot", "colander"]
+      "dietary_tags": [
+        "vegetarian"
+      ],
+      "equipment": [
+        "pot",
+        "colander"
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Bring a large pot of salted water to a rolling boil.",
+          "time": 300,
+          "ingredients_needed": []
+        },
+        {
+          "step": 2,
+          "instruction": "Add pasta and cook according to package directions, usually 8-12 minutes.",
+          "time": 600,
+          "ingredients_needed": [
+            "pasta"
+          ]
+        },
+        {
+          "step": 3,
+          "instruction": "Reserve 1/2 cup of pasta water before draining.",
+          "time": 30,
+          "ingredients_needed": []
+        },
+        {
+          "step": 4,
+          "instruction": "Drain pasta and return to the pot (off heat).",
+          "time": 30,
+          "ingredients_needed": []
+        },
+        {
+          "step": 5,
+          "instruction": "Add butter and toss until melted and pasta is coated.",
+          "time": 45,
+          "ingredients_needed": [
+            "butter"
+          ]
+        },
+        {
+          "step": 6,
+          "instruction": "Add grated parmesan cheese and a splash of pasta water. Toss until creamy.",
+          "time": 60,
+          "ingredients_needed": [
+            "parmesan cheese"
+          ]
+        },
+        {
+          "step": 7,
+          "instruction": "Season with salt to taste and serve immediately!",
+          "time": 30,
+          "ingredients_needed": [
+            "salt"
+          ]
+        }
+      ]
     },
     {
       "id": 9,
       "name": "Veggie Stir-Fry",
-      "ingredients": ["broccoli", "carrots", "bell peppers", "soy sauce", "garlic", "oil"],
+      "ingredients": [
+        "broccoli",
+        "carrots",
+        "bell peppers",
+        "soy sauce",
+        "garlic",
+        "oil"
+      ],
       "prep_time": 15,
       "cook_time": 10,
       "total_time": 25,
       "servings": 3,
       "skill_level": "beginner",
       "cuisine": "Asian",
-      "dietary_tags": ["vegetarian", "vegan"],
-      "equipment": ["wok", "knife"]
+      "dietary_tags": [
+        "vegetarian",
+        "vegan"
+      ],
+      "equipment": [
+        "wok",
+        "knife"
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "Wash all vegetables thoroughly. Cut broccoli into florets, slice carrots, and dice bell peppers.",
+          "time": 240,
+          "ingredients_needed": [
+            "broccoli",
+            "carrots",
+            "bell peppers"
+          ]
+        },
+        {
+          "step": 2,
+          "instruction": "Mince garlic cloves.",
+          "time": 30,
+          "ingredients_needed": [
+            "garlic"
+          ]
+        },
+        {
+          "step": 3,
+          "instruction": "Heat oil in a wok or large pan over high heat until very hot.",
+          "time": 60,
+          "ingredients_needed": [
+            "oil"
+          ]
+        },
+        {
+          "step": 4,
+          "instruction": "Add garlic, stir for 10 seconds until fragrant (don't let it burn!).",
+          "time": 10,
+          "ingredients_needed": []
+        },
+        {
+          "step": 5,
+          "instruction": "Add carrots first, stir-fry for 2 minutes.",
+          "time": 120,
+          "ingredients_needed": []
+        },
+        {
+          "step": 6,
+          "instruction": "Add broccoli and bell peppers, stir-fry for 3-4 minutes until tender-crisp.",
+          "time": 210,
+          "ingredients_needed": []
+        },
+        {
+          "step": 7,
+          "instruction": "Pour soy sauce over vegetables, toss for 30 seconds to coat evenly.",
+          "time": 30,
+          "ingredients_needed": [
+            "soy sauce"
+          ]
+        },
+        {
+          "step": 8,
+          "instruction": "Remove from heat immediately to keep veggies crisp. Serve over rice!",
+          "time": 30,
+          "ingredients_needed": []
+        }
+      ]
     },
     {
       "id": 10,
       "name": "Pancakes",
-      "ingredients": ["flour", "eggs", "milk", "butter", "sugar", "baking powder"],
+      "ingredients": [
+        "flour",
+        "eggs",
+        "milk",
+        "butter",
+        "sugar",
+        "baking powder"
+      ],
       "prep_time": 10,
       "cook_time": 15,
       "total_time": 25,
       "servings": 4,
       "skill_level": "beginner",
       "cuisine": "American",
-      "dietary_tags": ["vegetarian"],
-      "equipment": ["pan", "bowl", "whisk", "spatula"]
+      "dietary_tags": [
+        "vegetarian"
+      ],
+      "equipment": [
+        "pan",
+        "bowl",
+        "whisk",
+        "spatula"
+      ],
+      "instructions": [
+        {
+          "step": 1,
+          "instruction": "In a large bowl, whisk together flour, sugar, and baking powder.",
+          "time": 60,
+          "ingredients_needed": [
+            "flour",
+            "sugar",
+            "baking powder"
+          ]
+        },
+        {
+          "step": 2,
+          "instruction": "In another bowl, whisk eggs and milk until well combined.",
+          "time": 45,
+          "ingredients_needed": [
+            "eggs",
+            "milk"
+          ]
+        },
+        {
+          "step": 3,
+          "instruction": "Melt butter and let it cool slightly.",
+          "time": 60,
+          "ingredients_needed": [
+            "butter"
+          ]
+        },
+        {
+          "step": 4,
+          "instruction": "Pour wet ingredients into dry ingredients. Stir gently until just combined (lumps are okay!).",
+          "time": 45,
+          "ingredients_needed": []
+        },
+        {
+          "step": 5,
+          "instruction": "Heat a pan over medium heat. Lightly grease with butter.",
+          "time": 60,
+          "ingredients_needed": []
+        },
+        {
+          "step": 6,
+          "instruction": "Pour 1/4 cup batter for each pancake. Cook until bubbles form on surface, about 2 minutes.",
+          "time": 120,
+          "ingredients_needed": []
+        },
+        {
+          "step": 7,
+          "instruction": "Flip and cook until golden brown on the other side, about 1-2 minutes.",
+          "time": 90,
+          "ingredients_needed": []
+        },
+        {
+          "step": 8,
+          "instruction": "Repeat with remaining batter. Serve warm with syrup and butter!",
+          "time": 30,
+          "ingredients_needed": []
+        }
+      ]
     }
   ]
 }
