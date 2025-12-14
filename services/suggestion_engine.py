@@ -37,7 +37,7 @@ def generate_shopping_suggestions(user_ingredients, recipes, filters=None, top_n
         # strat 2: User has ZERO matches; analyze all filtered recipes
         # find ingredients that appear most frequently across all recipes
         
-        print("\n💡 Analyzing ALL recipes to find the most useful ingredients...")
+        print("\n Analyzing ALL recipes to find the most useful ingredients...")
         
         partial_matches = []
         for recipe in recipes:

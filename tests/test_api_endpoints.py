@@ -60,13 +60,16 @@ class TestHealthEndpoint:
 class TestAuthenticationEndpoints:
     """Test user authentication endpoints"""
     
-    @patch('commands.auth_handlers.handle_register_user')
+    @patch('api.USE_DATABASE', True)
+    @patch('api.handle_register_user')
     def test_register_success(self, mock_register, client):
+        import uuid
+
         """Test successful user registration"""
         mock_register.return_value = {
             'success': True,
             'user_id': 'test-123',
-            'username': 'testuser',
+            'username': f'testuser_{uuid.uuid4().hex[6:8]}',
             'message': 'Account created'
         }
         
@@ -74,13 +77,18 @@ class TestAuthenticationEndpoints:
             'username': 'testuser',
             'password': 'testpass123'
         })
+
+        print(f"Status: {response.status_code}")
+        print(f"Response: {response.json}")
+        print(f"Mock called: {mock_register.called}")
         
         assert response.status_code == 201
         data = json.loads(response.data)
         assert data['success'] is True
         assert 'user_id' in data
     
-    @patch('commands.auth_handlers.handle_register_user')
+    @patch('api.USE_DATABASE', True)
+    @patch('api.handle_register_user')
     def test_register_duplicate_username(self, mock_register, client):
         """Test registration with existing username"""
         mock_register.return_value = {
@@ -97,7 +105,8 @@ class TestAuthenticationEndpoints:
         data = json.loads(response.data)
         assert data['success'] is False
     
-    @patch('commands.auth_handlers.handle_login_user')
+    @patch('api.USE_DATABASE', True)
+    @patch('api.handle_login_user')
     def test_login_success(self, mock_login, client):
         """Test successful login"""
         mock_login.return_value = {
@@ -117,7 +126,8 @@ class TestAuthenticationEndpoints:
         data = json.loads(response.data)
         assert data['success'] is True
     
-    @patch('commands.auth_handlers.handle_login_user')
+    @patch('api.USE_DATABASE', True)
+    @patch('api.handle_login_user')
     def test_login_invalid_credentials(self, mock_login, client):
         """Test login with wrong password"""
         mock_login.return_value = {
@@ -293,7 +303,7 @@ class TestFavoriteEndpoints:
 class TestSubstitutionEndpoints:
     """Test ingredient substitution endpoints"""
     
-    @patch('api.get_substitutions_for_ingredient')
+    @patch('services.substitutions.get_substitutions_for_ingredient')
     def test_get_substitutions_single(self, mock_subs, client):
         """Test getting substitutions for single ingredient"""
         mock_subs.return_value = [
@@ -313,7 +323,7 @@ class TestSubstitutionEndpoints:
         assert 'substitutes' in data
         assert len(data['substitutes']) > 0
     
-    @patch('api.get_substitutions_for_ingredient')
+    @patch('services.substitutions.get_substitutions_for_ingredient')
     def test_get_substitutions_multiple(self, mock_subs, client):
         """Test getting substitutions for multiple ingredients"""
         mock_subs.return_value = [
@@ -334,8 +344,8 @@ class TestSubstitutionEndpoints:
 class TestCookingTermsEndpoints:
     """Test cooking terminology endpoints"""
     
-    @patch('api.get_all_terms')
-    @patch('api.get_term_definition')
+    @patch('services.cooking_terms.get_all_terms')
+    @patch('services.cooking_terms.get_term_definition')
     def test_get_all_cooking_terms(self, mock_def, mock_terms, client):
         """Test retrieving all cooking terms"""
         mock_terms.return_value = ['dice', 'sauté', 'simmer']
@@ -347,7 +357,7 @@ class TestCookingTermsEndpoints:
         assert 'terms' in data
         assert 'count' in data
     
-    @patch('api.get_term_definition')
+    @patch('services.cooking_terms.get_term_definition')
     def test_get_single_cooking_term(self, mock_def, client):
         """Test retrieving single cooking term"""
         mock_def.return_value = "Cut food into small cubes"
@@ -358,7 +368,7 @@ class TestCookingTermsEndpoints:
         assert data['term'] == 'dice'
         assert 'definition' in data
     
-    @patch('api.get_term_definition')
+    @patch('services.cooking_terms.get_term_definition')
     def test_get_unknown_cooking_term(self, mock_def, client):
         """Test retrieving unknown cooking term"""
         mock_def.return_value = None

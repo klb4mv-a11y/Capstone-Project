@@ -50,7 +50,7 @@ echo "=========================================="
 if [ $RESULT -eq 0 ]; then
     print_success "All tests passed!"
 else
-    echo "❌ Some tests failed"
+    echo " Some tests failed"
 fi
 echo "=========================================="
 echo ""

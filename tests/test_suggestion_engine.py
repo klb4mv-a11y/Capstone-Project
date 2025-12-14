@@ -192,7 +192,7 @@ class TestGenerateShoppingSuggestions:
             }
         ]
         
-        suggestions = generate_shopping_suggestions(user_ingredients, recipes, top_n=5)
+        suggestions = generate_shopping_suggestions(user_ingredients, recipes, top_n=5, has_matches=False)
         
         # rice appears in 2 recipes, should be ranked higher than soy sauce (1) and pasta (1)
         assert suggestions[0]['name'] == 'rice'

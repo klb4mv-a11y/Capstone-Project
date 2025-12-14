@@ -231,12 +231,18 @@ class TestQueryShoppingSuggestions:
         ]
         mock_search.return_value = [
             {
+                'id': 1,
+                'name': 'Recipe 1',  # ← Add recipe name
                 'match_percentage': 66.7,
-                'missing_ingredients': ['soy sauce', 'ginger']
-            },
+                'missing_ingredients': ['soy sauce', 'ginger'],
+                'ingredients': ['chicken', 'rice', 'soy sauce', 'ginger']  # ← Add full ingredient list
+                },
             {
+                'id': 2,
+                'name': 'Recipe 2',  # ← Add recipe name
                 'match_percentage': 75.0,
-                'missing_ingredients': ['soy sauce']
+                'missing_ingredients': ['soy sauce'],
+                'ingredients': ['chicken', 'rice', 'soy sauce']  # ← Add full ingredient list
             }
         ]
         
@@ -268,16 +274,26 @@ class TestDietaryRestrictionFiltering:
         """Test that incompatible recipes are filtered out"""
         # Setup
         mock_execute.side_effect = [
-            [{'u_id': 'user-123', 'diet': 'vegan'}],  # user profile
+            {'u_id': 'user-123', 'diet': 'vegan'},  # user profile
             [{'id': 1, 'name': 'Chicken Recipe', 'time': 30, 'skill': 'beginner', 'serving': 2}],  # recipes
             [{'name': 'chicken'}],  # recipe ingredients
             [{'name': 'pan'}]  # equipment
         ]
-        mock_check.return_value = (False, [{'ingredient': 'chicken', 'restriction': 'vegan'}])
+        mock_check.return_value = (False, [{
+            'ingredient': 'chicken',
+            'restriction': 'vegan',
+            'reason': 'Contains chicken (violates vegan)'
+            }])
         
         result = query_recipes_by_ingredients(['chicken'], {}, user_id='user-123')
         
-        # Recipe should be in filtered list, not compatible list
         if isinstance(result, dict):
-            assert len(result['filtered']) > 0
-            assert 'violations' in result['filtered'][0]
+        # New format with separated lists
+            assert len(result.get('filtered', [])) > 0
+            if len(result['filtered']) > 0:
+                assert 'violations' in result['filtered'][0]
+        else:
+            # Old format - all recipes in one list
+            # Check that incompatible recipes have violation markers
+            incompatible_recipes = [r for r in result if not r.get('compatible', True)]
+            assert len(incompatible_recipes) > 0
