@@ -1374,13 +1374,13 @@
             );
         }
 
-        // Rest of SmartFridgeApp component remains the same but with updated API calls...
+        // SmartFridgeApp component
         function SmartFridgeApp({ cookingTerms }) {
             const [pantryIngredients, setPantryIngredients] = useState([]);  // User's actual pantry
             const [searchIngredients, setSearchIngredients] = useState([]);  // Temporary search mode
             const [currentIngredient, setCurrentIngredient] = useState('');
             const [recipes, setRecipes] = useState([]);
-            const [filteredRecipes, setFilteredRecipes] = useState([]);  // Recipes filtered by dietary restrictions
+            const [filteredRecipes, setFilteredRecipes] = useState([]);
             const [filters, setFilters] = useState({
                 maxTime: '',
                 skillLevel: '',
@@ -1390,9 +1390,13 @@
             const [cookingMode, setCookingMode] = useState(null);
             const [favorites, setFavorites] = useState(new Set());
             const [searchMode, setSearchMode] = useState('pantry');  // 'pantry' or 'search'
-            const [userDietaryRestrictions, setUserDietaryRestrictions] = useState([]);  // User's dietary restrictions
-            const [quickPick, setQuickPick] = useState(null);  // "Just Tell Me What To Cook" recommendation
-            const [substitutions, setSubstitutions] = useState({});  // Ingredient substitutions cache
+            const [userDietaryRestrictions, setUserDietaryRestrictions] = useState([]);
+            const [quickPick, setQuickPick] = useState(null);
+            const [substitutions, setSubstitutions] = useState({});
+            
+            // NEW: Smart Suggestions State
+            const [smartSuggestions, setSmartSuggestions] = useState(null);
+            const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
             useEffect(() => {
                 loadUserData();
@@ -1404,6 +1408,13 @@
                     performSearch(pantryIngredients);
                 }
             }, [pantryIngredients, searchMode]);
+
+            // NEW: Auto-load smart suggestions when in shopping mode
+            useEffect(() => {
+                if (searchMode === 'search' && searchIngredients.length > 0) {
+                    loadSmartSuggestions();
+                }
+            }, [searchIngredients, searchMode, filters]);
 
             const loadUserData = async () => {
                 try {
@@ -1433,15 +1444,46 @@
                     console.log('📋 Profile data received:', profileData);
                     
                     const restrictions = profileData?.profile?.dietary_restrictions || [];
-                    // Filter out empty strings
                     const validRestrictions = restrictions.filter(r => r && r.trim().length > 0);
                     
                     console.log('🍽️ Dietary restrictions loaded:', validRestrictions);
-                    
-                    // Store dietary restrictions for display
                     setUserDietaryRestrictions(validRestrictions);
                 } catch (error) {
                     console.error('Failed to load user data:', error);
+                }
+            };
+
+            // NEW: Load smart shopping suggestions
+            const loadSmartSuggestions = async () => {
+                if (searchMode !== 'search' || searchIngredients.length === 0) {
+                    return;
+                }
+                
+                setLoadingSuggestions(true);
+                
+                try {
+                    const ingredientNames = searchIngredients.map(ing => ing.name);
+                    
+                    const response = await fetch(`${API_URL}/smart-shopping-suggestions`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            filters: filters,
+                            top_n: 5,
+                            user_ingredients: ingredientNames
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        setSmartSuggestions(data);
+                        console.log(`💡 Loaded ${data.suggestions.length} smart suggestions`);
+                    }
+                } catch (error) {
+                    console.error('Failed to load smart suggestions:', error);
+                } finally {
+                    setLoadingSuggestions(false);
                 }
             };
 
@@ -1471,7 +1513,7 @@
                         
                         if (response.ok) {
                             setCurrentIngredient('');
-                            await loadUserData();  // Reload pantry
+                            await loadUserData();
                         }
                     } catch (error) {
                         console.error('Failed to add ingredient:', error);
@@ -1487,7 +1529,7 @@
                     });
                     
                     if (response.ok) {
-                        await loadUserData();  // Reload pantry
+                        await loadUserData();
                     }
                 } catch (error) {
                     console.error('Failed to remove ingredient:', error);
@@ -1518,7 +1560,6 @@
                     setRecipes(data.results || []);
                     setFilteredRecipes(data.filtered_recipes || []);
                     
-                    // Load substitutions for filtered recipes
                     if (data.filtered_recipes && data.filtered_recipes.length > 0) {
                         await loadSubstitutions(data.filtered_recipes, data.dietary_restrictions || []);
                     }
@@ -1528,7 +1569,6 @@
             };
 
             const loadSubstitutions = async (filteredRecipes, dietaryRestrictions) => {
-                // Collect all violating ingredients
                 const violatingIngredients = new Set();
                 filteredRecipes.forEach(recipe => {
                     if (recipe.violations) {
@@ -1611,20 +1651,21 @@
                 setSearchMode('search');
                 setSearchIngredients([]);
                 setRecipes([]);
-                setQuickPick(null);  // Clear quick pick when switching modes
+                setQuickPick(null);
+                setSmartSuggestions(null);
             };
 
             const switchToPantryMode = () => {
                 setSearchMode('pantry');
                 setSearchIngredients([]);
-                setQuickPick(null);  // Clear quick pick when switching modes
+                setQuickPick(null);
+                setSmartSuggestions(null);
                 if (pantryIngredients.length > 0) {
                     performSearch(pantryIngredients);
                 }
             };
 
             const getQuickPick = () => {
-                // Filter for 100% matches only
                 const perfectMatches = recipes.filter(r => r.match_percentage === 100);
                 
                 if (perfectMatches.length === 0) {
@@ -1632,7 +1673,6 @@
                     return;
                 }
                 
-                // Randomly pick one from perfect matches
                 const randomIndex = Math.floor(Math.random() * perfectMatches.length);
                 const selected = perfectMatches[randomIndex];
                 
@@ -1715,7 +1755,7 @@
                         )}
                     </div>
 
-                    {/* Quick Pick - "Just Tell Me What To Cook" */}
+                    {/* Quick Pick - "Just Tell Me What To Cook" - ONLY IN PANTRY MODE */}
                     {searchMode === 'pantry' && pantryIngredients.length > 0 && (
                         <div className="section">
                             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem'}}>
@@ -1873,6 +1913,297 @@
                                     </div>
                                 )
                             )}
+                        </div>
+                    )}
+
+                    {/* 🛒 NEW: Smart Shopping Suggestions - ONLY IN SHOPPING MODE */}
+                    {searchMode === 'search' && searchIngredients.length > 0 && (
+                        <div className="section">
+                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem'}}>
+                                <div>
+                                    <h2 style={{margin: 0, marginBottom: '0.5rem'}}>🛒 Smart Shopping Suggestions</h2>
+                                    <p style={{margin: 0, fontSize: '0.9rem', color: '#666'}}>
+                                        Add these ingredients to unlock the most new recipes
+                                    </p>
+                                </div>
+                                <button 
+                                    className="btn btn-secondary"
+                                    onClick={loadSmartSuggestions}
+                                    disabled={loadingSuggestions}
+                                    style={{minWidth: '120px'}}
+                                >
+                                    {loadingSuggestions ? '⏳ Loading...' : '🔄 Refresh'}
+                                </button>
+                            </div>
+
+                            {loadingSuggestions ? (
+                                <div style={{textAlign: 'center', padding: '2rem', color: '#999'}}>
+                                    <div style={{fontSize: '2rem', marginBottom: '1rem'}}>⏳</div>
+                                    <p>Analyzing recipes and finding the best ingredients to add...</p>
+                                </div>
+                            ) : smartSuggestions && smartSuggestions.suggestions.length > 0 ? (
+                                <>
+                                    {/* Strategy Indicator */}
+                                    <div style={{
+                                        marginBottom: '1.5rem',
+                                        padding: '0.75rem',
+                                        background: smartSuggestions.strategy === 'close_recipes' 
+                                            ? 'linear-gradient(135deg, #E8F5E9, #C8E6C9)'
+                                            : 'linear-gradient(135deg, #FFF5E6, #FFE8CC)',
+                                        border: `2px solid ${smartSuggestions.strategy === 'close_recipes' ? '#4CAF50' : '#D97642'}`,
+                                        borderRadius: '8px',
+                                        textAlign: 'center'
+                                    }}>
+                                        <div style={{
+                                            fontSize: '0.9rem',
+                                            fontWeight: '600',
+                                            color: smartSuggestions.strategy === 'close_recipes' ? '#4CAF50' : '#D97642',
+                                            marginBottom: '0.25rem'
+                                        }}>
+                                            {smartSuggestions.strategy === 'close_recipes' 
+                                                ? '✨ Great! You have some matches. Here are close recipes:'
+                                                : '💡 Starting fresh. Here\'s what will help most:'}
+                                        </div>
+                                        <div style={{fontSize: '0.85rem', color: '#666'}}>
+                                            {smartSuggestions.current_matches} perfect matches • {searchIngredients.length} ingredients selected
+                                        </div>
+                                    </div>
+
+                                    {/* Suggestions Grid */}
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                                        gap: '1rem',
+                                        marginBottom: '2rem'
+                                    }}>
+                                        {smartSuggestions.suggestions.map((suggestion, idx) => (
+                                            <div key={idx} style={{
+                                                background: 'white',
+                                                border: '2px solid #E5D5C5',
+                                                borderRadius: '12px',
+                                                padding: '1.5rem',
+                                                transition: 'all 0.3s',
+                                                cursor: 'pointer',
+                                                position: 'relative',
+                                                overflow: 'hidden'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.transform = 'translateY(-4px)';
+                                                e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
+                                                e.currentTarget.style.borderColor = '#D97642';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.transform = 'translateY(0)';
+                                                e.currentTarget.style.boxShadow = 'none';
+                                                e.currentTarget.style.borderColor = '#E5D5C5';
+                                            }}>
+                                                {/* Rank Badge */}
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    top: '1rem',
+                                                    right: '1rem',
+                                                    background: idx === 0 ? '#FFD700' : idx === 1 ? '#C0C0C0' : idx === 2 ? '#CD7F32' : '#8FA68E',
+                                                    color: 'white',
+                                                    width: '32px',
+                                                    height: '32px',
+                                                    borderRadius: '50%',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontWeight: 'bold',
+                                                    fontSize: '0.9rem'
+                                                }}>
+                                                    {idx + 1}
+                                                </div>
+
+                                                {/* Ingredient Name */}
+                                                <div style={{
+                                                    fontSize: '1.3rem',
+                                                    fontWeight: 'bold',
+                                                    color: '#D97642',
+                                                    marginBottom: '0.75rem',
+                                                    textTransform: 'capitalize',
+                                                    paddingRight: '40px'
+                                                }}>
+                                                    {suggestion.name}
+                                                </div>
+
+                                                {/* Unlock Count */}
+                                                <div style={{
+                                                    fontSize: '2rem',
+                                                    fontWeight: 'bold',
+                                                    color: '#8FA68E',
+                                                    marginBottom: '0.5rem'
+                                                }}>
+                                                    +{suggestion.unlock_count}
+                                                </div>
+                                                <div style={{
+                                                    fontSize: '0.9rem',
+                                                    color: '#666',
+                                                    marginBottom: '1rem'
+                                                }}>
+                                                    {suggestion.unlock_count === 1 ? 'new recipe' : 'new recipes'}
+                                                </div>
+
+                                                {/* Recipe Preview */}
+                                                <div style={{
+                                                    padding: '0.75rem',
+                                                    background: '#F5EDE4',
+                                                    borderRadius: '8px',
+                                                    fontSize: '0.85rem',
+                                                    color: '#666'
+                                                }}>
+                                                    <div style={{fontWeight: '600', marginBottom: '0.25rem', color: '#2C2416'}}>
+                                                        Unlocks:
+                                                    </div>
+                                                    {suggestion.recipe_names.slice(0, 3).map((name, i) => (
+                                                        <div key={i} style={{marginBottom: '0.15rem'}}>
+                                                            • {name}
+                                                        </div>
+                                                    ))}
+                                                    {suggestion.recipe_names.length > 3 && (
+                                                        <div style={{fontStyle: 'italic', marginTop: '0.25rem'}}>
+                                                            ...and {suggestion.recipe_names.length - 3} more
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Quick Add Button */}
+                                                <button
+                                                    className="btn btn-primary"
+                                                    onClick={async (e) => {
+                                                        e.stopPropagation();
+                                                        // Add to search ingredients
+                                                        if (!searchIngredients.find(ing => ing.name === suggestion.name)) {
+                                                            setSearchIngredients([...searchIngredients, {
+                                                                id: 'temp-' + Date.now(),
+                                                                name: suggestion.name
+                                                            }]);
+                                                            alert(`✅ Added ${suggestion.name} to search!`);
+                                                        }
+                                                    }}
+                                                    style={{
+                                                        width: '100%',
+                                                        marginTop: '1rem',
+                                                        fontSize: '0.9rem',
+                                                        padding: '0.75rem'
+                                                    }}
+                                                >
+                                                    + Add to Search
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Partial Matches Section */}
+                                    {smartSuggestions.partial_matches && smartSuggestions.partial_matches.length > 0 && (
+                                        <div style={{
+                                            marginTop: '2rem',
+                                            padding: '1.5rem',
+                                            background: 'linear-gradient(135deg, #FFF5E6, #FFE8CC)',
+                                            border: '2px solid #D97642',
+                                            borderRadius: '12px'
+                                        }}>
+                                            <h3 style={{margin: '0 0 1rem 0', color: '#D97642'}}>
+                                                📊 You're Close to Making These
+                                            </h3>
+                                            <p style={{margin: '0 0 1.5rem 0', fontSize: '0.9rem', color: '#666'}}>
+                                                These recipes are 50%+ matched - just a few ingredients away!
+                                            </p>
+
+                                            <div style={{display: 'grid', gap: '1rem'}}>
+                                                {smartSuggestions.partial_matches.map((recipe, idx) => {
+                                                    return (
+                                                        <div key={idx} style={{
+                                                            background: 'white',
+                                                            padding: '1rem',
+                                                            borderRadius: '8px',
+                                                            border: '2px solid #E5D5C5'
+                                                        }}>
+                                                            <div style={{
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                alignItems: 'flex-start',
+                                                                marginBottom: '0.75rem'
+                                                            }}>
+                                                                <div>
+                                                                    <div style={{
+                                                                        fontSize: '1.1rem',
+                                                                        fontWeight: 'bold',
+                                                                        color: '#2C2416',
+                                                                        marginBottom: '0.25rem'
+                                                                    }}>
+                                                                        {recipe.name}
+                                                                    </div>
+                                                                    <div style={{fontSize: '0.85rem', color: '#666'}}>
+                                                                        {recipe.total_time} min • {recipe.skill_level}
+                                                                    </div>
+                                                                </div>
+                                                                <div style={{
+                                                                    fontSize: '1.5rem',
+                                                                    fontWeight: 'bold',
+                                                                    color: '#D97642'
+                                                                }}>
+                                                                    {recipe.match_percentage}%
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Progress Bar */}
+                                                            <div style={{
+                                                                width: '100%',
+                                                                height: '8px',
+                                                                background: '#E5D5C5',
+                                                                borderRadius: '4px',
+                                                                overflow: 'hidden',
+                                                                marginBottom: '0.75rem'
+                                                            }}>
+                                                                <div style={{
+                                                                    width: `${recipe.match_percentage}%`,
+                                                                    height: '100%',
+                                                                    background: 'linear-gradient(90deg, #8FA68E, #D97642)',
+                                                                    transition: 'width 0.5s ease'
+                                                                }}></div>
+                                                            </div>
+
+                                                            <div style={{
+                                                                display: 'grid',
+                                                                gridTemplateColumns: '1fr 1fr',
+                                                                gap: '1rem',
+                                                                fontSize: '0.85rem'
+                                                            }}>
+                                                                <div>
+                                                                    <div style={{fontWeight: '600', color: '#4CAF50', marginBottom: '0.25rem'}}>
+                                                                        ✅ You have ({recipe.matched_ingredients.length}):
+                                                                    </div>
+                                                                    <div style={{color: '#666'}}>
+                                                                        {recipe.matched_ingredients.slice(0, 3).join(', ')}
+                                                                        {recipe.matched_ingredients.length > 3 && '...'}
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <div style={{fontWeight: '600', color: '#D97642', marginBottom: '0.25rem'}}>
+                                                                        🛒 Still need ({recipe.missing_ingredients.length}):
+                                                                    </div>
+                                                                    <div style={{color: '#666'}}>
+                                                                        {recipe.missing_ingredients.slice(0, 3).join(', ')}
+                                                                        {recipe.missing_ingredients.length > 3 && '...'}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            ) : smartSuggestions ? (
+                                <div style={{textAlign: 'center', padding: '2rem', color: '#999'}}>
+                                    <div style={{fontSize: '2rem', marginBottom: '1rem'}}>🎉</div>
+                                    <p>Great selection! You already have ingredients for lots of recipes.</p>
+                                    <p style={{fontSize: '0.9rem'}}>Try different filters to see more suggestions.</p>
+                                </div>
+                            ) : null}
                         </div>
                     )}
 
@@ -2131,20 +2462,19 @@
             const step = recipe.instructions[currentStep];
             const progress = ((currentStep + 1) / totalSteps) * 100;
             
-            // Cooking term popup state
             const [selectedTerm, setSelectedTerm] = useState(null);
 
             const nextStep = () => {
                 if (currentStep < totalSteps - 1) {
                     setMode({ ...mode, currentStep: currentStep + 1 });
-                    setSelectedTerm(null); // Close popup when changing steps
+                    setSelectedTerm(null);
                 }
             };
 
             const prevStep = () => {
                 if (currentStep > 0) {
                     setMode({ ...mode, currentStep: currentStep - 1 });
-                    setSelectedTerm(null); // Close popup when changing steps
+                    setSelectedTerm(null);
                 }
             };
 
@@ -2190,7 +2520,6 @@
                                 </div>
                             )}
                             
-                            {/* Cooking tip about clickable terms */}
                             {cookingTerms && Object.keys(cookingTerms).length > 0 && (
                                 <div style={{
                                     marginTop: '1rem',
@@ -2236,7 +2565,6 @@
                         </div>
                     )}
                     
-                    {/* Cooking Term Popup */}
                     {selectedTerm && (
                         <CookingTermPopup
                             term={selectedTerm.term}

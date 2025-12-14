@@ -15,7 +15,7 @@ from database.db_connection import (
     DatabaseContext
 )
 
-def load_recipes_from_json(filepath='recipes.json'):
+def load_recipes_from_json(filepath='data/recipes.json'):
     """Load recipes from JSON file"""
     with open(filepath, 'r') as f:
         data = json.load(f)

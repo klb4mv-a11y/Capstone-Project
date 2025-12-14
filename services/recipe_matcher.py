@@ -2,7 +2,7 @@ import json
 
 def load_recipes():
     # load recipes from a JSON file
-    with open('recipes.json', 'r') as file:
+    with open('data/recipes.json', 'r') as file:
         data = json.load(file)
     return data['recipes']
 

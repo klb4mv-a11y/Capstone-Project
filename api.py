@@ -27,19 +27,19 @@ try:
     from database.init_db import initialize_database
     USE_DATABASE = initialize_database()
 except Exception as e:
-    print(f"\n  Database initialization failed: {e}")
+    print(f"\n⚠️  Database initialization failed: {e}")
     print("  Falling back to in-memory storage")
     print("  See database/DATABASE_SETUP.md for setup instructions\n")
 
 # Import appropriate handlers based on database availability
 if USE_DATABASE:
-    print(" Using PostgreSQL for data storage")
+    print("✓ Using PostgreSQL for data storage")
     from commands.command_handlers import *
     from commands.auth_handlers import *
     from queries.query_handlers import *
     from consumers.event_consumers import setup_event_consumers
 else:
-    print("  Using in-memory storage (data will be lost on restart)")
+    print("⚠️  Using in-memory storage (data will be lost on restart)")
     from commands.command_handlers import *
     from queries.query_handlers import *
     from consumers.event_consumers import setup_event_consumers
@@ -408,13 +408,13 @@ def update_equipment():
     return jsonify(result), status_code
 
 # ============================================================================
-# SHOPPING SUGGESTIONS ENDPOINT (Protected)
+# SHOPPING SUGGESTIONS ENDPOINTS
 # ============================================================================
 
 @app.route('/api/suggestions', methods=['GET'])
 @login_required
 def get_suggestions():
-    # get shopping suggestions for current user
+    # get shopping suggestions for current user (old endpoint)
     user_id = get_current_user_id()
     
     filters = {}
@@ -430,6 +430,186 @@ def get_suggestions():
         'suggestions': suggestions,
         'count': len(suggestions)
     }), 200
+
+@app.route('/api/smart-shopping-suggestions', methods=['POST'])
+def get_smart_shopping_suggestions():
+    from services.suggestion_engine import generate_shopping_suggestions
+    from services.recipe_matcher import search_recipes, find_partial_matches
+    
+    data = request.get_json()
+    user_ingredients = data.get('user_ingredients', [])
+    filters = data.get('filters', {})
+    top_n = int(data.get('top_n', 5))
+    
+    # normalize ingredients to lowercase
+    user_ingredients = [ing.lower().strip() for ing in user_ingredients]
+    
+    print(f"\n Smart Shopping Suggestions Request:")
+    print(f"   User ingredients: {user_ingredients}")
+    print(f"   Filters: {filters}")
+    print(f"   Top N: {top_n}")
+    
+    # load all recipes
+    try:
+        # if using database, get recipes from there
+        if USE_DATABASE:
+            from queries.query_handlers import query_recipe_by_id
+            from database.db_connection import execute_query
+            
+            # get user_id if logged in
+            user_id = get_current_user_id()
+            
+            # Get ALL recipes directly from database
+            # Don't use query_recipes_by_ingredients with empty list - it returns nothing!
+            print(f"   Fetching all recipes from database...")
+            
+            base_query = """
+                SELECT DISTINCT r.r_id as id, r.name, r.time as total_time, 
+                       r.skill as skill_level, r."desc" as cuisine
+                FROM recipe r
+                WHERE 1=1
+            """
+            
+            params = []
+            
+            # apply filters
+            if filters.get('maxTime'):
+                base_query += " AND r.time <= %s"
+                params.append(int(filters['maxTime']))
+            
+            if filters.get('skillLevel'):
+                base_query += " AND LOWER(r.skill) = LOWER(%s)"
+                params.append(filters['skillLevel'])
+            
+            if filters.get('cuisine'):
+                base_query += " AND LOWER(r.\"desc\") LIKE LOWER(%s)"
+                params.append(f"%{filters['cuisine']}%")
+            
+            base_query += " ORDER BY r.name;"
+            
+            recipes_raw = execute_query(base_query, tuple(params), fetch_all=True)
+            
+            print(f"   Found {len(recipes_raw or [])} recipes in database")
+            
+            # Now fetch full recipe data including ingredient lists
+            all_recipes = []
+            for recipe_summary in (recipes_raw or []):
+                recipe_full = query_recipe_by_id(str(recipe_summary['id']))
+                if recipe_full and recipe_full.get('ingredients'):
+                    all_recipes.append({
+                        'id': recipe_full['id'],
+                        'name': recipe_full['name'],
+                        'ingredients': recipe_full['ingredients'],  # This is critical!
+                        'total_time': recipe_full.get('total_time', 0),
+                        'skill_level': recipe_full.get('skill_level', 'beginner'),
+                        'cuisine': recipe_full.get('cuisine', 'unknown')
+                    })
+            
+            print(f"   Loaded full data for {len(all_recipes)} recipes")
+            
+            # also search with user ingredients to get current matches
+            from queries.query_handlers import query_recipes_by_ingredients
+            current_matches_data = query_recipes_by_ingredients(user_ingredients, filters, user_id=user_id)
+            if isinstance(current_matches_data, dict):
+                current_matches = current_matches_data.get('compatible', [])
+            else:
+                current_matches = current_matches_data
+        else:
+            # fallback to recipes.json
+            from services.recipe_matcher import load_recipes
+            all_recipes_raw = load_recipes()
+            
+            # convert to format expected by suggestion_engine
+            all_recipes = []
+            for r in all_recipes_raw:
+                all_recipes.append({
+                    'id': r['id'],
+                    'name': r['name'],
+                    'ingredients': r['ingredients'],
+                    'total_time': r.get('total_time', 0),
+                    'skill_level': r.get('skill_level', 'beginner'),
+                    'cuisine': r.get('cuisine', 'unknown')
+                })
+            
+            # get current matches
+            current_matches = search_recipes(user_ingredients, all_recipes_raw, filters)
+        
+        # filter out recipes the user can already make perfectly (100% match)
+        exclude_ids = set([r['id'] for r in current_matches if r.get('match_percentage', 0) == 100])
+        
+        print(f"   Total recipes available: {len(all_recipes)}")
+        print(f"   Current matches: {len(current_matches)}")
+        print(f"   Perfect matches (excluded): {len(exclude_ids)}")
+        
+        # determine if user has any matches
+        has_matches = len(current_matches) > 0
+        
+        print(f"   Has matches: {has_matches}")
+        print(f"   Strategy: {'close_recipes (50%+ matches)' if has_matches else 'fresh_start (all recipes)'}")
+        
+        # generate suggestions
+        suggestions = generate_shopping_suggestions(
+            user_ingredients=user_ingredients,
+            recipes=all_recipes,
+            filters=filters,
+            top_n=top_n,
+            has_matches=has_matches,
+            exclude_ids=exclude_ids
+        )
+        
+        print(f"   Raw suggestions count: {len(suggestions)}")
+        
+        # If no suggestions with has_matches=True, try again with has_matches=False
+        # This handles the case where user has some matches but they're all perfect
+        if len(suggestions) == 0 and has_matches:
+            print(f"   No suggestions with close_recipes strategy, trying fresh_start...")
+            suggestions = generate_shopping_suggestions(
+                user_ingredients=user_ingredients,
+                recipes=all_recipes,
+                filters=filters,
+                top_n=top_n,
+                has_matches=False,  # Try fresh start strategy
+                exclude_ids=exclude_ids
+            )
+            has_matches = False  # Update strategy indicator
+        
+        # get partial matches for display (50%+)
+        partial_matches = find_partial_matches(
+            user_ingredients=user_ingredients,
+            recipes=all_recipes,
+            filters=filters,
+            min_match_threshold=50,
+            exclude_ids=exclude_ids
+        )
+        
+        # limit to top 5 partial matches
+        partial_matches = partial_matches[:5]
+        
+        print(f"   Suggestions generated: {len(suggestions)}")
+        print(f"   Partial matches: {len(partial_matches)}")
+        
+        # determine strategy used
+        strategy = "close_recipes" if has_matches else "fresh_start"
+        
+        return jsonify({
+            'success': True,
+            'suggestions': suggestions,
+            'partial_matches': partial_matches,
+            'strategy': strategy,
+            'current_matches': len(current_matches),
+            'current_pantry_size': len(user_ingredients)
+        }), 200
+        
+    except Exception as e:
+        print(f" Error generating suggestions: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'suggestions': [],
+            'partial_matches': []
+        }), 500
 
 # ============================================================================
 # ANALYTICS ENDPOINTS
@@ -488,7 +668,7 @@ def get_user_analytics_endpoint():
 @app.route('/api/substitutions/<ingredient>', methods=['GET'])
 def get_substitutions(ingredient):
     # get substitutions for an ingredient based on dietary restrictions
-    from substitutions import get_substitutions_for_ingredient
+    from services.substitutions import get_substitutions_for_ingredient
     
     # get dietary restrictions from query params or session
     user_id = get_current_user_id()
@@ -518,7 +698,7 @@ def get_substitutions(ingredient):
 @app.route('/api/substitutions', methods=['POST'])
 def get_multiple_substitutions():
     # get substitutions for multiple ingredients
-    from substitutions import get_substitutions_for_ingredient
+    from services.substitutions import get_substitutions_for_ingredient
     
     data = request.get_json()
     ingredients = data.get('ingredients', [])
@@ -551,7 +731,7 @@ def get_multiple_substitutions():
 @app.route('/api/cooking-terms', methods=['GET'])
 def get_all_cooking_terms():
     # get all cooking terms for glossary
-    from cooking_terms import get_all_terms, get_term_definition
+    from services.cooking_terms import get_all_terms, get_term_definition
     
     terms = get_all_terms()
     glossary = {
@@ -567,7 +747,7 @@ def get_all_cooking_terms():
 @app.route('/api/cooking-terms/<term_name>', methods=['GET'])
 def get_cooking_term(term_name):
     # get definition for a specific cooking term
-    from cooking_terms import get_term_definition
+    from services.cooking_terms import get_term_definition
     
     definition = get_term_definition(term_name)
     
@@ -584,7 +764,7 @@ def get_cooking_term(term_name):
 @app.route('/api/cooking-terms/search', methods=['POST'])
 def search_cooking_terms():
     # search cooking terms
-    from cooking_terms import search_terms
+    from services.cooking_terms import search_terms
     
     data = request.get_json()
     query = data.get('query', '')
@@ -621,13 +801,13 @@ def health_check():
 
 if __name__ == '__main__':
     print("\n" + "=" * 70)
-    print("SmartFridge API Starting")
+    print(" SmartFridge API Starting")
     if USE_DATABASE:
-        print("Storage: PostgreSQL")
-        print("Features:  User Accounts | Profiles | Persistence")
+        print(" Storage: PostgreSQL")
+        print(" Features: ✓ User Accounts | ✓ Profiles | ✓ Persistence")
     else:
-        print("Storage: In-Memory (temporary)")
-        print("Features Lost:  User Accounts (PostgreSQL required)")
+        print("  Storage: In-Memory (temporary)")
+        print(" Features Lost: User Accounts (PostgreSQL required)")
     print("=" * 70 + "\n")
     
     app.run(debug=True, host='0.0.0.0', port=5000)
