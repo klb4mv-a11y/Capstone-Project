@@ -4,3 +4,7 @@ flask
 flask-cors
 psycopg2
 dotenv
+pytest
+pytest-cov
+pytest-mock
+coverage

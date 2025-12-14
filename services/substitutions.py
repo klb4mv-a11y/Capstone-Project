@@ -27,7 +27,7 @@ SUBSTITUTIONS = {
             {
                 'name': 'soy milk',
                 'ratio': '1:1',
-                'best_for': ['vegan', 'dairy-free'],
+                'best_for': ['vegan', 'dairy-free', 'nut-free'],
                 'flavor_impact': 'Neutral flavor',
                 'texture_impact': 'Similar to dairy milk',
                 'cooking_notes': 'High protein content, works well in all recipes'
@@ -56,7 +56,7 @@ SUBSTITUTIONS = {
             {
                 'name': 'coconut oil',
                 'ratio': '1:1',
-                'best_for': ['vegan', 'dairy-free'],
+                'best_for': ['vegan', 'dairy-free', 'nut-free'],
                 'flavor_impact': 'Slight coconut flavor',
                 'texture_impact': 'Solid at room temp, similar to butter',
                 'cooking_notes': 'Great for baking, use refined for no coconut taste'
@@ -98,7 +98,7 @@ SUBSTITUTIONS = {
             {
                 'name': 'coconut cream',
                 'ratio': '1:1',
-                'best_for': ['vegan', 'dairy-free'],
+                'best_for': ['vegan', 'dairy-free', 'nut-free'],
                 'flavor_impact': 'Slight coconut flavor',
                 'texture_impact': 'Very rich and creamy',
                 'cooking_notes': 'Chill can and use thick top layer'
@@ -127,7 +127,7 @@ SUBSTITUTIONS = {
             {
                 'name': 'coconut yogurt',
                 'ratio': '1:1',
-                'best_for': ['vegan', 'dairy-free'],
+                'best_for': ['vegan', 'dairy-free', 'nut-free'],
                 'flavor_impact': 'Slight coconut flavor',
                 'texture_impact': 'Similar to dairy yogurt',
                 'cooking_notes': 'Works in all recipes'
@@ -135,7 +135,7 @@ SUBSTITUTIONS = {
             {
                 'name': 'soy yogurt',
                 'ratio': '1:1',
-                'best_for': ['vegan', 'dairy-free'],
+                'best_for': ['vegan', 'dairy-free', 'nut-free'],
                 'flavor_impact': 'Neutral',
                 'texture_impact': 'Very similar to dairy yogurt',
                 'cooking_notes': 'High protein, works well'
@@ -157,7 +157,7 @@ SUBSTITUTIONS = {
             {
                 'name': 'chia egg',
                 'ratio': '1 tbsp chia seeds + 3 tbsp water = 1 egg',
-                'best_for': ['vegan'],
+                'best_for': ['vegan', 'nut-free'],
                 'flavor_impact': 'Very mild',
                 'texture_impact': 'Works for binding',
                 'cooking_notes': 'Let sit 5 min to gel'
@@ -165,7 +165,7 @@ SUBSTITUTIONS = {
             {
                 'name': 'applesauce',
                 'ratio': '1/4 cup = 1 egg',
-                'best_for': ['vegan'],
+                'best_for': ['vegan', 'nut-free'],
                 'flavor_impact': 'Slight sweetness',
                 'texture_impact': 'Adds moisture, works in baking',
                 'cooking_notes': 'Use unsweetened, best for cakes/muffins'
@@ -173,7 +173,7 @@ SUBSTITUTIONS = {
             {
                 'name': 'aquafaba',
                 'ratio': '3 tbsp = 1 egg',
-                'best_for': ['vegan'],
+                'best_for': ['vegan', 'nut-free'],
                 'flavor_impact': 'Neutral',
                 'texture_impact': 'Can be whipped, great for meringues',
                 'cooking_notes': 'Liquid from canned chickpeas, whips like egg whites'
@@ -194,7 +194,7 @@ SUBSTITUTIONS = {
             {
                 'name': 'aquafaba',
                 'ratio': '3 tbsp per egg',
-                'best_for': ['vegan'],
+                'best_for': ['vegan', 'nut-free'],
                 'flavor_impact': 'Neutral',
                 'texture_impact': 'Can be whipped',
                 'cooking_notes': 'From canned chickpeas'
@@ -341,7 +341,7 @@ SUBSTITUTIONS = {
             {
                 'name': 'coconut flour',
                 'ratio': '1/4 cup coconut = 1 cup wheat',
-                'best_for': ['gluten-free'],
+                'best_for': ['gluten-free', 'nut-free'],
                 'flavor_impact': 'Slight coconut flavor',
                 'texture_impact': 'Very absorbent',
                 'cooking_notes': 'Needs more liquid, use less'
@@ -368,11 +368,16 @@ def get_substitutions_for_ingredient(ingredient_name, dietary_restrictions):
     
     all_substitutes = SUBSTITUTIONS[ingredient_lower]['substitutes']
     
-    # filter substitutes that work for the dietary restrictions
+    # FIXED: Use AND logic - substitute must be compatible with ALL restrictions
     appropriate_subs = []
     for sub in all_substitutes:
-        # check if this substitute helps with any of the user's dietary restrictions
-        if any(restriction in sub['best_for'] for restriction in dietary_restrictions):
+        # Check if this substitute is marked as suitable for ALL user restrictions
+        is_compatible = all(
+            restriction in sub['best_for'] 
+            for restriction in dietary_restrictions
+        )
+        
+        if is_compatible:
             appropriate_subs.append(sub)
     
     return appropriate_subs
