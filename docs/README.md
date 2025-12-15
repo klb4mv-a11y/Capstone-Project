@@ -1,4 +1,4 @@
-# Capstone Project: SmartFridge - Smart Recipe Recommendation System
+# Capstone-Project: SmartFridge - Smart Recipe Recommendation System
 
 **Find recipes based on what you actually have in your fridge!**
 
@@ -119,7 +119,7 @@ The backend API will start on the port shown in your Codespaces environment (typ
 
 ### 5. Access the Application
 
-**Frontend:** Visit your GitHub Pages URL (usually `https://YOUR_USERNAME.github.io/SmartFridge`)
+**Frontend:** Visit your GitHub Pages URL (usually `https://klb4mv-a11y.github.io/Capstone-Project`)
 
 **Backend Health Check:** Access your Codespaces forwarded port URL + `/health`
 

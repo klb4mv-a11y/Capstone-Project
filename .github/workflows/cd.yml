@@ -1,0 +1,139 @@
+name: SmartFridge CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/cd.yml'
+
+jobs:
+  test-before-deploy:
+    name: Run Tests Before Deploy
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: smartfridge_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Set up test database
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d smartfridge_test -f database/schema.sql
+      
+      - name: Create test .env file
+        run: |
+          cat > .env << EOF
+          DB_HOST=localhost
+          DB_PORT=5432
+          DB_NAME=smartfridge_test
+          DB_USER=postgres
+          DB_PASSWORD=postgres
+          SECRET_KEY=test-secret-key-for-ci
+          FLASK_ENV=testing
+          EOF
+      
+      - name: Run tests
+        run: |
+          pytest tests/ -v --tb=short
+
+  deploy-frontend:
+    name: Deploy Frontend to GitHub Pages
+    needs: test-before-deploy
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Prepare frontend for deployment
+        run: |
+          # Create deployment directory
+          mkdir -p _site
+          
+          # Copy frontend files
+          cp -r frontend/* _site/
+          
+          # Optional: Add deployment timestamp
+          echo "<!-- Deployed: $(date) -->" >> _site/index.html
+          
+          # Optional: Create a simple status page
+          cat > _site/status.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>SmartFridge - Status</title>
+              <style>
+                  body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+                  .status { padding: 20px; border-radius: 5px; margin: 20px 0; }
+                  .online { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+                  .offline { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+              </style>
+          </head>
+          <body>
+              <h1>🍳 SmartFridge Status</h1>
+              <div class="status online">
+                  <h2>✅ Frontend: Online</h2>
+                  <p>The SmartFridge web interface is deployed and accessible.</p>
+              </div>
+              <div class="status offline">
+                  <h2>⚠️ Backend: Manual Start Required</h2>
+                  <p>The backend API runs in GitHub Codespaces and must be started manually.</p>
+                  <p>Contact the developer for demo access.</p>
+              </div>
+              <p><a href="index.html">← Back to SmartFridge</a></p>
+              <hr>
+              <p><small>Last deployed: $(date)</small></p>
+          </body>
+          </html>
+          EOF
+      
+      - name: Upload artifact to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_site
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      
+      - name: Display deployment URL
+        run: |
+          echo "🎉 Frontend deployed successfully!"
+          echo "URL: ${{ steps.deployment.outputs.page_url }}"
