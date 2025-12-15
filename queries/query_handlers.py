@@ -244,6 +244,7 @@ def query_recipes_by_ingredients(ingredient_names: List[str], filters: Dict[str,
                 'skill_level': recipe.get('skill_level', 'beginner'),
                 'cuisine': recipe.get('desc', ''),
                 'dietary_tags': [],
+                'violations': violations,
                 'equipment': [e['name'] for e in (equipment or [])]
             }
             

@@ -1593,7 +1593,7 @@
 
                     const data = await response.json();
                     setSubstitutions(data.substitutions || {});
-                    console.log(`📝 Loaded substitutions for ${Object.keys(data.substitutions || {}).length} ingredients`);
+                    console.log(` Loaded substitutions for ${Object.keys(data.substitutions || {}).length} ingredients`);
                 } catch (error) {
                     console.error('Failed to load substitutions:', error);
                 }
